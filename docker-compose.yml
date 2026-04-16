@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: express_app
+    restart: always
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - appnet
+    volumes:
+      - ./upload:/usr/src/app/upload
+      - ./logs:/usr/src/app/logs
+    command: pm2-runtime ecosystem.config.cjs
+    expose:
+      - "5000"
+
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    volumes:
+      - mlm_backend_pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d mydb" ]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx_proxy
+    restart: always
+    ports:
+      - "5001:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./upload:/usr/src/app/upload:ro
+    depends_on:
+      - app
+    networks:
+      - appnet
+
+volumes:
+  mlm_backend_pgdata:
+    external: true
+
+networks:
+  appnet:
+    driver: bridge

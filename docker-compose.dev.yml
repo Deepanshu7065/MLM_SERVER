@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: development.dockerfile
+    container_name: express_app
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./upload:/usr/src/app/upload
+      - ./logs:/usr/src/app/logs
+    ports:
+      - "5001:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - appnet
+    command: npm run dev
+
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    volumes:
+      - mlm_backend_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d mydb" ]
+      interval: 5s
+      retries: 5
+    networks:
+      - appnet
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    networks:
+      - appnet
+
+volumes:
+  mlm_backend_pgdata:
+    external: true
+
+networks:
+  appnet:
+    driver: bridge
