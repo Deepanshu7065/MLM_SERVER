@@ -323,11 +323,16 @@
 
 
 import 'dotenv/config'
+// import dotenv from "dotenv";
+
+// dotenv.config({
+//   path: ".env.local"
+// });
 
 import express from "express";
 import cors from "cors";
-import { createServer } from "http"; // 👈 Add this
-import { Server } from "socket.io";   // 👈 Add this
+import { createServer } from "http"; 
+import { Server } from "socket.io";
 import "./Modal/index.js";
 import sequelize from "./DB/sequelize.js";
 import { seedAdmin } from "../utils/seedAdmin.js";

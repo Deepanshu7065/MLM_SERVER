@@ -9,6 +9,8 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
       rejectUnauthorized: false 
     }
   },
+  protocol: "postgres",
+  native: false,
   pool: {
     max: 10,
     min: 0,
