@@ -331,7 +331,7 @@ import 'dotenv/config'
 
 import express from "express";
 import cors from "cors";
-import { createServer } from "http"; 
+import { createServer } from "http";
 import { Server } from "socket.io";
 import "./Modal/index.js";
 import sequelize from "./DB/sequelize.js";
@@ -376,6 +376,10 @@ import createTickets from "./Router/Contact/createTicket.js";
 import userTickets from "./Router/Contact/userTicket.js";
 import verifyPayment from "./Router/Payment/verifyPayment.js";
 import webhookPayment from "./Router/Payment/webhookPayment.js";
+import withdrawalRouterGet from './Router/Withdraw/withdraw.get.js';
+import withdrawalRouterPost from './Router/Withdraw/withdraw.post.js';
+import withdrawalRouterPatch from './Router/Withdraw/withdraw.patch.js';
+import withdrawalUserRouterGet from './Router/Withdraw/withdraw.user.get.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -467,6 +471,12 @@ app.use("/tickets/create", createTickets);
 app.use("/user-ticket", userTickets);
 app.use("/all-users", allUser);
 app.use("/my-users", myUsers);
+
+// withdraw
+app.use("/history-withdraw-all", withdrawalRouterGet);
+app.use("/history-withdraw-my", withdrawalUserRouterGet);
+app.use("/request-payment", withdrawalRouterPost);
+app.use("/update-withdraw", withdrawalRouterPatch);
 
 // Error Handlers
 app.use((req, res, next) => {
