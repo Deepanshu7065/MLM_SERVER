@@ -387,7 +387,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: "https://dm-advancetech.com",
     methods: ["GET", "POST"]
   }
 });
