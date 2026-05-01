@@ -1,9 +1,10 @@
 import { Router } from "express";
 import User from "../../Modal/User.modal.js";
+import { authenticateToken } from "../../../middleware/authentication.js";
 
 const user = Router();
 
-user.get("/:userId", async (req, res) => {
+user.get("/:userId", authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
 
