@@ -78,49 +78,72 @@
 // });
 
 // export default createOrder;
-
-
 import { Router } from "express";
 import Order from "../../Modal/order.js";
 import User from "../../Modal/User.modal.js";
 import Courses from "../../Modal/courses.modal.js";
 import Payment from "../../Modal/Payment.modal.js";
+import { authenticateToken } from "../../../middleware/authentication.js";
 
+const createOrder = Router();
 
-const createOrder = Router()
-
-
-createOrder.post("/", async (req, res) => {
+createOrder.post("/", authenticateToken, async (req, res) => {
     try {
-        const { userId, courseId, totalAmount, status, payment_id } = req.body;
+        const { payment_db_id } = req.body;
+        const userId = req.user.userId;
 
-        const user = await User.findOne({ where: { userId } })
-        const course = await Courses.findAll({ where: [{ id: courseId }] })
-        const payment = await Payment.findOne({ where: { id: payment_id } })
+        const payment = await Payment.findOne({ where: { id: payment_db_id, userId } });
 
-        if (!status === 'success') {
-            return res.status(400).json({ error: "Payment failed" })
+        if (!payment) {
+            return res.status(404).json({ error: "Payment record not found" });
         }
 
-        if (!user) return res.status(404).json({ error: "User not found" })
-        if (!course) return res.status(404).json({ error: "Course not found" })
-        if (!payment) return res.status(404).json({ error: "payment not found" })
+        if (payment.status !== 'SUCCESS') {
+            return res.status(400).json({ error: "Order cannot be created. Payment status is not SUCCESS." });
+        }
 
-        const order = await Order.create({
-            userId,
-            totalAmount,
-            quantity: Array.isArray(courseId) ? courseId.length : 1,
-            status: 'pending',
-            payment_id: payment_id
+        let order = await Order.findOne({ where: { payment_id: payment_db_id } });
+
+        if (!order) {
+            order = await Order.create({
+                userId,
+                totalAmount: payment.total_amount,
+                quantity: payment.courseIds ? payment.courseIds.length : 1,
+                status: 'completed',
+                payment_id: payment_db_id
+            });
+        }
+
+        const finalOrderData = await Order.findOne({
+            where: { orderId: order.orderId },
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["name", "email", "userId"]
+                },
+                {
+                    model: Payment,
+                    as: "payment"
+                },
+                {
+                    model: Courses,
+                    as: "ordered_courses",
+                    through: { attributes: [] } // Junction table ke attributes hide karne ke liye
+                },
+            ],
         });
 
-        res.status(200).json({ order })
+        res.status(200).json({
+            success: true,
+            message: "Order details fetched successfully",
+            order: finalOrderData
+        });
 
     } catch (error) {
-        console.error("❌ Order creation error:", error);
-        res.status(500).json({ error: "Internal server error." });
+        console.error("❌ Final Order Error:", error);
+        res.status(500).json({ error: "Internal server error while fetching order details." });
     }
-})
+});
 
-
-export default createOrder
+export default createOrder;

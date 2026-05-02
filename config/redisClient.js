@@ -20,7 +20,7 @@
 import Redis from "ioredis";
 
 // Direct connection string use karein jo dashboard par set hai
-const redis = new Redis(process.env.REDIS_URL);
+const redis = new Redis(process.env.RADIS_URL);
 
 redis.on("error", (err) => {
   console.error("Redis error:", err);

@@ -1,146 +1,61 @@
+// routes/Payment/createPayment.js
 import { Router } from "express";
-import Razorpay from "razorpay";
-import CartItem from "../../Modal/Cart.modal.js";
-import Courses from "../../Modal/courses.modal.js";
+import { Cashfree } from "cashfree-pg";
 import Payment from "../../Modal/Payment.modal.js";
-import User from "../../Modal/User.modal.js";
 import { authenticateToken } from "../../../middleware/authentication.js";
 
-const checkoutRouter = Router();
+const createPayment = Router();
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Cashfree Configuration
+Cashfree.XClientId = process.env.CASHFREE_APP_ID;
+Cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
+Cashfree.XEnvironment = "PRODUCTION"; 
 
-// POST /api/payment/checkout
-// User cart se Razorpay order banata hai
-checkoutRouter.post("/", authenticateToken, async (req, res) => {
+createPayment.post("/", authenticateToken, async (req, res) => {
   try {
+    const { amount, courseIds, customerName, customerEmail, customerPhone } = req.body;
     const userId = req.user.userId;
-    const { name, phone, email } = req.body;
 
-    const user = await User.findOne({ where: { userId } });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Cart items fetch karo
-    const cartItems = await CartItem.findAll({
-      where: { userId },
-      include: [{ model: Courses, as: "courses" }],
+    // 1. Database mein pending payment record banayein
+    const paymentRecord = await Payment.create({
+      userId,
+      total_amount: amount,
+      courseIds: courseIds,
+      status: "PENDING",
     });
 
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
-    }
-
-    const courseIds = cartItems.map((item) => item.course_id);
-
-    // Total amount calculate karo
-    const total_amount = cartItems.reduce((sum, item) => {
-      return sum + (item.courses?.price || 0);
-    }, 0);
-
-    if (total_amount <= 0) {
-      return res.status(400).json({ message: "Invalid cart amount" });
-    }
-
-    // Razorpay order create karo
-    const razorOptions = {
-      amount: total_amount * 100, // paise mein
-      currency: "INR",
-      receipt: `rcpt_${Date.now()}`,
+    // 2. Cashfree Order Request
+    const request = {
+      order_amount: amount,
+      order_currency: "INR",
+      order_id: `ORDER_${paymentRecord.id}_${Date.now()}`, // Unique Order ID
+      customer_details: {
+        customer_id: userId.toString(),
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+      },
+      order_meta: {
+        return_url: `https://dm-advancetech.com/payment-status?order_id={order_id}`,
+      },
     };
 
-    const razorOrder = await razorpay.orders.create(razorOptions);
+    const response = await Cashfree.PGCreateOrder("2023-08-01", request);
+    
+    // Payment record mein order_id update karein (Cashfree wali)
+    await paymentRecord.update({ payment_id: response.data.order_id });
 
-    // DB mein PENDING payment save karo
-    const payment = await Payment.create({
-      userId,
-      name: name || user.name,
-      email: email || user.email,
-      phone: phone || user.phone,
-      total_amount,
-      payment_id: razorOrder.id,
-      payment_method: "razorpay",
-      status: "PENDING",
-      courseIds,
-    });
-
-    res.json({
+    res.status(200).json({
       success: true,
-      razorpay_order_id: razorOrder.id,
-      amount: razorOrder.amount,
-      currency: razorOrder.currency,
-      payment_db_id: payment.id,
-      key_id: process.env.RAZORPAY_KEY_ID,
+      payment_session_id: response.data.payment_session_id,
+      order_id: response.data.order_id,
+      payment_db_id: paymentRecord.id
     });
-  } catch (err) {
-    console.error("❌ Checkout error:", err);
-    res.status(500).json({ error: err.message });
+
+  } catch (error) {
+    console.error("Cashfree Order Error:", error.response?.data || error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-export default checkoutRouter;
-
-// import { Router } from "express";
-// import CartItem from "../../Modal/Cart.modal.js";
-// import Courses from "../../Modal/courses.modal.js";
-// import Payment from "../../Modal/Payment.modal.js";
-// import User from "../../Modal/User.modal.js";
-
-// const checkoutRouter = Router();
-
-// checkoutRouter.post("/", async (req, res) => {
-//   try {
-//     const {
-//       userId,
-//       payment_method,
-//       payment_id,
-//       name,
-//       phone,
-//       email,
-//       total_amount,
-//     } = req.body;
-
-//     const user = await User.findOne({ where: { userId } });
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     const cartItems = await CartItem.findAll({
-//       where: { userId },
-//       include: [{ model: Courses, as: "courses" }],
-//     });
-
-//     if (!cartItems || cartItems.length === 0) {
-//       return res.status(400).json({ message: "Cart is empty" });
-//     }
-
-//     const courseIds = cartItems.map((item) => item.course_id);
-
-//     const payment = await Payment.create({
-//       userId: userId,
-//       name: name,
-//       email: email,
-//       phone: phone,
-//       total_amount: total_amount,
-//       payment_id,
-//       payment_method,
-//       status: "PENDING",
-//       courseIds: courseIds,
-//     });
-
-//     await CartItem.destroy({ where: { userId } });
-
-//     res.json({
-//       message: "Payment initiated, courses saved with payment",
-//       payment,
-//       courseIds,
-//     });
-//   } catch (err) {
-//     console.error("❌ Checkout error:", err);
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// export default checkoutRouter;
+export default createPayment;

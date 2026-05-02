@@ -4,7 +4,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon -r dotenv/config src/server.js dotenv_config_path=.env.local",
+    "dev": "nodemon -r dotenv/config src/server.js dotenv_config_path=.env",
     "start": "node src/server.js",
     "docker:dev": "docker compose up",
     "docker:build": "docker compose up --build",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cashfree-pg": "^5.1.3",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
