@@ -72,6 +72,7 @@ verifyPayment.post("/", authenticateToken, async (req, res) => {
   } catch (error) {
     const errMsg = error.response?.data?.message || error.message;
     console.error("❌ Verify Payment Error:", errMsg);
+    
     res.status(500).json({ error: errMsg });
   }
 });
