@@ -106,7 +106,7 @@ const Payment = sequelize.define("payments", {
 // CartItem.hasMany(Payment, { foreignKey: "courseId", sourceKey: "course_id" });
 // Payment.belongsTo(CartItem, { foreignKey: "courseId", targetKey: "course_id" });
 
-User.hasMany(Payment, { foreignKey: "userId", sourceKey: "userId" });
-Payment.belongsTo(User, { foreignKey: "userId", targetKey: "userId" });
+User.hasMany(Payment, { foreignKey: "userId", sourceKey: "userId", as: "payments" });
+Payment.belongsTo(User, { foreignKey: "userId", targetKey: "userId", as: "user" })
 
 export default Payment;
