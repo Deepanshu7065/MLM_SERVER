@@ -452,7 +452,7 @@ app.use("/remove-cart", deleteCart);
 // app.use("/get-user-payment", getUserPayment);
 app.use("/my-courses", myCoursesRouter);
 app.use("/create-order", createOrder);
-app.use("/checkout", createPayment );
+app.use("/checkout", createPayment);
 app.use("/payment/verify", verifyPayment);
 app.use("/get-payment", getPayment);
 app.use("/get-user-payment", getUserPayment);
@@ -488,18 +488,64 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ success: false, message: err.message || "Internal Server Error" });
 });
 
+// async function startServer() {
+//   try {
+//     await sequelize.authenticate();
+//     await sequelize.sync({ alter: true });
+//     await seedAdmin();
+//     httpServer.listen(process.env.PORT || 5000, "0.0.0.0", () => {
+//       console.log(`🚀 Server + Socket running on ${process.env.PORT || 5000}`);
+//     });
+//   } catch (err) {
+//     console.error("❌ Startup failed", err);
+//     process.exit(1);
+//   }
+// }
+
+
+
 async function startServer() {
+  // Pure server startup ka timer shuru
+  console.time("⏱️ Total Startup Time");
+
   try {
+    console.time("1️⃣ DB Connection Time");
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true });
-    await seedAdmin();
+    console.log("📡 DB Connected ✅");
+    console.timeEnd("1️⃣ DB Connection Time");
+
+    // Server Listen ka Timer
+    console.time("2️⃣ Server Listen Time");
     httpServer.listen(process.env.PORT || 5000, "0.0.0.0", () => {
-      console.log(`🚀 Server + Socket running on ${process.env.PORT || 5000}`);
+      console.log(`🚀 Server running on port ${process.env.PORT || 5000} ✅`);
+      console.timeEnd("2️⃣ Server Listen Time");
+      console.timeEnd("⏱️ Total Startup Time"); // Yahan tak ka time main delay hai
     });
+
+    const runBackgroundTasks = async () => {
+      try {
+        console.time("3️⃣ Background Sync Time");
+        const syncOptions = process.env.NODE_ENV === 'development' ? { alter: true } : {};
+        
+        console.log("⏳ DB Syncing in background...");
+        await sequelize.sync(syncOptions);
+        console.log("✅ DB Synced");
+        console.timeEnd("3️⃣ Background Sync Time");
+
+        console.time("4️⃣ Admin Seeding Time");
+        await seedAdmin();
+        console.log("🔥 Admin Check/Seed Completed");
+        console.timeEnd("4️⃣ Admin Seeding Time");
+      } catch (bgError) {
+        console.error("❌ Background Task Error:", bgError);
+      }
+    };
+
+    runBackgroundTasks();
+
   } catch (err) {
-    console.error("❌ Startup failed", err);
+    console.error("❌ Fatal Startup Error:", err);
     process.exit(1);
   }
 }
-
 startServer();
