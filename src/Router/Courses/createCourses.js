@@ -9,10 +9,10 @@ const createCourses = Router();
 
 createCourses.post("/", authenticateToken, uploadCourseImage, async (req, res) => {
   try {
-    const { course_name, description, price, duration, category_id } = req.body;
+    const { course_name, lesson, description, price, duration, category_id } = req.body;
     const user_id = req.user.userId;
 
-    if (!course_name || !description || !price || !duration || !category_id) {
+    if (!course_name || !description || !price || !duration || !category_id || !lesson) {
       return res.status(400).json({ error: "Missing required fields." });
     }
 
@@ -37,6 +37,7 @@ createCourses.post("/", authenticateToken, uploadCourseImage, async (req, res) =
       duration: durationNum,
       category_id,
       userId: user_id,
+      lesson
     });
 
     res.status(200).json({
