@@ -526,7 +526,7 @@ async function startServer() {
       try {
         console.time("3️⃣ Background Sync Time");
         const syncOptions = process.env.NODE_ENV === 'development' ? { alter: true } : {};
-        
+
         console.log("⏳ DB Syncing in background...");
         await sequelize.sync({ alter: true });
         console.log("✅ DB Synced");
