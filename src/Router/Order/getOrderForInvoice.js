@@ -30,7 +30,7 @@ getOrderForInvoice.get("/:orderId", authenticateToken, async (req, res) => {
                     model: Courses,
                     as: "ordered_courses",
                     through: { attributes: [] },
-                    attributes: ["id", "course_name", "price"],
+                    attributes: ["id", "category_id", "course_name", "price"],
                 },
             ],
         });
@@ -65,6 +65,7 @@ getOrderForInvoice.get("/:orderId", authenticateToken, async (req, res) => {
                     id: c.id,
                     course_name: c.course_name,
                     price: Number(c.price),
+                    category_id: c.category_id
                 })),
                 subtotal: baseAmount,      // GST-exclusive
                 gstAmount: gstAmount,      // sirf GST
