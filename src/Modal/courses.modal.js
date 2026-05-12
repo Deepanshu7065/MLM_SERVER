@@ -86,7 +86,7 @@ const Courses = sequelize.define("courses", {
         allowNull: false
     },
     category_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false
     },
     userId: {

@@ -53,24 +53,27 @@ import withdrawalRouterPost from './Router/Withdraw/withdraw.post.js';
 import withdrawalRouterPatch from './Router/Withdraw/withdraw.patch.js';
 import withdrawalUserRouterGet from './Router/Withdraw/withdraw.user.get.js';
 import createPayment from './Router/Payment/createPayment.js';
+import getOrderForInvoice from './Router/Order/getOrderForInvoice.js';
 
-// ─── App + HTTP Server Setup ─────────────────────────────────────────────────
 const app = express();
 const httpServer = createServer(app);
 
-// ─── Allowed Origins ─────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   "https://dm-advancetech.com",
   "https://www.dm-advancetech.com",
-  // Dev mein test ke liye niche wali line uncomment karein:
-  // "http://localhost:3000",
+  "http://100.90.254.6:3110",
+  "http://100.90.254.6:5173",
+  "http://100.90.254.6:3000",
+  "http://localhost:3110",   // ✅ yahi missing tha!
+  "http://localhost:5173",   // ✅ Vite default port bhi
+  "http://192.168.1.24:3110", // ✅ local network IP bhi (Image 2 mein dikh raha)
+  "http://172.22.0.1:3110",  // ✅ yeh bhi terminal mein tha
 ];
 
-// ─── Socket.io ───────────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   },
   pingTimeout: 20000,   // 20 sec bina response ke disconnect
@@ -78,20 +81,22 @@ const io = new Server(httpServer, {
   transports: ["websocket", "polling"],
 });
 
-// ─── Security: Helmet (HTTP headers) ─────────────────────────────────────────
 app.disable("x-powered-by");
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // static files ke liye
 }));
 
-// ─── Compression ─────────────────────────────────────────────────────────────
 app.use(compression());
 
-// ─── CORS ────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, callback) => {
-    // Postman / server-to-server calls (no origin) allow — sirf dev/trusted
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    // Production mein originless requests block karo
+    if (!origin) {
+      const isProd = process.env.NODE_ENV === "production";
+      if (isProd) return callback(new Error("CORS: No origin not allowed in production"));
+      return callback(null, true); // dev mein Postman allow
+    }
+    if (ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
     callback(new Error(`CORS: Origin ${origin} not allowed`));
@@ -101,19 +106,13 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-// ─── Body Parsers ─────────────────────────────────────────────────────────────
-// Webhook ko raw body chahiye — isliye pehle register karo
 app.use("/payment-webhook", express.raw({ type: "application/json" }));
 
-// Baaki sab ke liye JSON
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// ─── Static Files ─────────────────────────────────────────────────────────────
 app.use('/upload', express.static('upload'));
 
-// ─── Rate Limiting ────────────────────────────────────────────────────────────
-// Global limiter: har IP ko 100 req / 1 min
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -133,8 +132,6 @@ const authLimiter = rateLimit({
 
 app.use(globalLimiter);
 
-// ─── DB Ready Middleware ──────────────────────────────────────────────────────
-// Webhook aur health-check ko DB check se bahar rakhna chahiye
 const DB_BYPASS_ROUTES = ["/", "/health", "/payment-webhook"];
 
 app.use((req, res, next) => {
@@ -148,13 +145,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─── Attach Socket.io to Request ─────────────────────────────────────────────
 app.use((req, _res, next) => {
   req.io = io;
   next();
 });
 
-// ─── Socket.io Events ────────────────────────────────────────────────────────
 io.on("connection", (socket) => {
   console.log(`📡 Socket Connected: ${socket.id}`);
 
@@ -247,6 +242,7 @@ app.use("/history-withdraw-all", withdrawalRouterGet);
 app.use("/history-withdraw-my", withdrawalUserRouterGet);
 app.use("/request-payment", withdrawalRouterPost);
 app.use("/update-withdraw", withdrawalRouterPatch);
+app.use("/invoice", getOrderForInvoice);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -285,6 +281,8 @@ async function runBackgroundTasks(retryCount = 0) {
     // Development mein alter:true — schema auto-update
     await sequelize.sync({ alter: isDev });
     console.timeEnd("2️⃣  DB Sync");
+
+    
 
     console.time("3️⃣  Admin Seed");
     await seedAdmin();

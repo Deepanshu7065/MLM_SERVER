@@ -8,8 +8,6 @@ import { Cashfree } from "../../../config/cashfree.js";
 
 const verifyPayment = Router();
 
-
-
 verifyPayment.post("/", authenticateToken, async (req, res) => {
   try {
     const { order_id, payment_db_id } = req.body;
@@ -68,11 +66,16 @@ verifyPayment.post("/", authenticateToken, async (req, res) => {
       console.error("Commission Error:", err.message);
     }
 
-    res.json({ success: true, message: "Order placed successfully" });
+    // ✅ orderId response mein bhejo — invoice fetch ke liye
+    res.json({
+      success: true,
+      message: "Order placed successfully",
+      order_id: order.orderId,
+    });
+
   } catch (error) {
     const errMsg = error.response?.data?.message || error.message;
     console.error("❌ Verify Payment Error:", errMsg);
-    
     res.status(500).json({ error: errMsg });
   }
 });
