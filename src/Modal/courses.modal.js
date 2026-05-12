@@ -64,10 +64,11 @@ const Courses = sequelize.define("courses", {
         type: DataTypes.STRING,
         allowNull: false
     },
-    lesson:{
+    lesson: {
         type: DataTypes.INTEGER,
-        allowNull: false
-     }
+        allowNull: false,
+        defaultValue: 0,
+    },
     description: {
         type: DataTypes.STRING,
         allowNull: false

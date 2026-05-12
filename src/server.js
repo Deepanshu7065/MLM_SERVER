@@ -1,551 +1,341 @@
-// // src/server.js
-
-// import dotenv from "dotenv";
-// dotenv.config();
-
-// import express from "express";
-// import cors from "cors";
-// import "./Modal/index.js";
-// import sendCode from "./Router/EmailVerify/sendEmail.js";
-// import verifyCode from "./Router/EmailVerify/verifyEmail.js";
-// import createUser from "./Router/User/createUser.js";
-// import users from "./Router/User/users.js";
-// import verifyPassword from "./Router/User/verifyPassword.js";
-// import user from "./Router/User/$user.js";
-// import sequelize from "./DB/sequelize.js";
-// import forgetSendOtp from "./Router/EmailForget/forgetSendOtp.js";
-// import verifyForgetOtp from "./Router/EmailForget/verifyForgetOtp.js";
-// import updatePassword from "./Router/EmailForget/updatePassword.js";
-// import courses from "./Router/Courses/courses.js";
-// import createCourses from "./Router/Courses/createCourses.js";
-// import manageCourses from "./Router/Courses/manageCourses.js";
-// import myUsers from "./Router/my-users/index.js";
-// import User from "./Modal/User.modal.js";
-// import getCourseById from "./Router/Courses/coursesId.js";
-// import cartRouter from "./Router/Cart/cart.js";
-// import checkoutRouter from "./Router/Payment/checkout.js";
-// import myCoursesRouter from "./Router/UserCourses/myCourses.js";
-// import createCart from "./Router/Cart/cartCreate.js";
-// import deleteCart from "./Router/Cart/deleteCart.js";
-// import createOrder from "./Router/Order/createOrder.js";
-// import getOrder from "./Router/Order/getOrder.js";
-// import getSingleOrder from "./Router/Order/getSingleOrder.js";
-// import getUserPayment from "./Router/Payment/getUserPyement.js";
-// import getPayment from "./Router/Payment/getPayment.js";
-// import allUser from "./Router/User/alluser.js";
-// import { seedAdmin } from "../utils/seedAdmin.js";
-// import changePaymentStatus from "./Router/Payment/changePaymentStatus.js";
-// import getUserOrder from "./Router/Order/getUserOrder.js";
-// import userStats from "./Router/User/stats.js";
-
-
-// const app = express();
-// app.disable("x-powered-by");
-
-// app.use((req, res, next) => {
-//   console.log(`🔥 ${new Date().toISOString()} | ${req.method} ${req.url}`);
-//   console.log(`   Headers:`, req.headers);
-//   next();
-// });
-
-// app.use(cors({
-//   origin: ["http://localhost:5174", "http://localhost:5173", "http://localhost:5001"],
-//   credentials: true,
-//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//   allowedHeaders: ["Content-Type", "Authorization"],
-// }));
-
-// app.use(express.json({ limit: "1mb" }));
-// app.use(express.urlencoded({ extended: true }));
-// app.use('/upload', express.static('upload'));
-
-// app.get("/", (req, res) => res.send("Server is running ✅"));
-
-// app.use("/send-code", sendCode);
-// app.use("/verify-code", verifyCode);
-// app.use("/create-user", createUser);
-// app.use("/users", users);
-// app.use("/user", user);
-// app.use("/forget-send-code", forgetSendOtp);
-// app.use("/forget-verify-code", verifyForgetOtp);
-// app.use("/update-password", updatePassword);
-// app.use("/verify-password", verifyPassword);
-// app.use("/courses", courses);
-// app.use("/single-course", getCourseById);
-// app.use("/create_course", createCourses);
-// app.use("/manage_course", manageCourses);
-// app.use("/cart", cartRouter);
-// app.use("/add-cart", createCart);
-// app.use("/remove-cart", deleteCart);
-// app.use("/checkout", checkoutRouter);
-// app.use("/get-payment", getPayment)
-// app.use("/get-user-payment", getUserPayment)
-// app.use("/my-courses", myCoursesRouter);
-// app.use("/create-order", createOrder);
-// app.use("/orders", getOrder);
-// app.use("/single-order", getSingleOrder);
-// app.use("/user-order", getUserOrder);
-// app.use("/update-payment", changePaymentStatus)
-// app.use("/my-earnings", userStats)
-
-// app.use("/all-users", allUser)
-
-// app.use("/my-users", myUsers);
-
-// app.get("/debug-users", async (req, res) => {
-//   try {
-//     const users = await User.findAll({
-//       attributes: ['id', 'userId', 'name', 'email', 'referalCode', 'parent_code', 'ref_by_id'],
-//       raw: true
-//     });
-
-//     res.json({
-//       totalUsers: users.length,
-//       users: users
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-
-// app.use((req, res, next) => {
-//   res.status(404).json({
-//     success: false,
-//     message: `Route ${req.method} ${req.url} not found`,
-//   });
-// });
-
-
-// app.use((err, req, res, next) => {
-//   res.status(err.status || 500).json({
-//     success: false,
-//     message: err.message || "Internal Server Error",
-//   });
-// });
-
-// process.on("uncaughtException", (err) => {
-//   console.error("UNCAUGHT EXCEPTION:", err);
-// });
-
-// process.on("unhandledRejection", (reason) => {
-//   console.error("UNHANDLED REJECTION:", reason);
-// });
-// async function startServer() {
-//   try {
-//     await sequelize.authenticate();
-//     await sequelize.sync({ alter: true });
-//     await seedAdmin();
-
-//     app.listen(process.env.PORT, () => {
-//       console.log(`🚀 Server running on ${process.env.PORT}`);
-//     });
-//   } catch (err) {
-//     console.error("❌ Startup failed", err);
-//     process.exit(1);
-//   }
-// }
-
-// startServer();
-
-
-//  after 
-// // src/server.js
-
-// import dotenv from "dotenv";
-// dotenv.config();
-
-// import express from "express";
-// import cors from "cors";
-// import "./Modal/index.js";
-// import sendCode from "./Router/EmailVerify/sendEmail.js";
-// import verifyCode from "./Router/EmailVerify/verifyEmail.js";
-// import createUser from "./Router/User/createUser.js";
-// import users from "./Router/User/users.js";
-// import verifyPassword from "./Router/User/verifyPassword.js";
-// import user from "./Router/User/$user.js";
-// import sequelize from "./DB/sequelize.js";
-// import forgetSendOtp from "./Router/EmailForget/forgetSendOtp.js";
-// import verifyForgetOtp from "./Router/EmailForget/verifyForgetOtp.js";
-// import updatePassword from "./Router/EmailForget/updatePassword.js";
-// import courses from "./Router/Courses/courses.js";
-// import createCourses from "./Router/Courses/createCourses.js";
-// import manageCourses from "./Router/Courses/manageCourses.js";
-// import myUsers from "./Router/my-users/index.js";
-// import User from "./Modal/User.modal.js";
-// import getCourseById from "./Router/Courses/coursesId.js";
-// import cartRouter from "./Router/Cart/cart.js";
-// import checkoutRouter from "./Router/Payment/checkout.js";
-// import myCoursesRouter from "./Router/UserCourses/myCourses.js";
-// import createCart from "./Router/Cart/cartCreate.js";
-// import deleteCart from "./Router/Cart/deleteCart.js";
-// import createOrder from "./Router/Order/createOrder.js";
-// import getOrder from "./Router/Order/getOrder.js";
-// import getSingleOrder from "./Router/Order/getSingleOrder.js";
-// import getUserPayment from "./Router/Payment/getUserPyement.js";
-// import getPayment from "./Router/Payment/getPayment.js";
-// import allUser from "./Router/User/alluser.js";
-// import { seedAdmin } from "../utils/seedAdmin.js";
-// import changePaymentStatus from "./Router/Payment/changePaymentStatus.js";
-// import getUserOrder from "./Router/Order/getUserOrder.js";
-// import walletRouter from "./Router/Wallet/wallet.js";
-// import adminWalletRouter from "./Router/User/adminWallet.js";
-// import getAllTickets from "./Router/Contact/getAllTickets.js";
-// import updateTicketStatus from "./Router/Contact/updateTicket.js";
-// import ticketChat from "./Router/Contact/ticketChat.js";
-// import ticketChatPost from "./Router/Contact/ticketChatPost.js";
-// import createTickets from "./Router/Contact/createTicket.js";
-// import userTickets from "./Router/Contact/userTicket.js";
-
-
-// const app = express();
-// app.disable("x-powered-by");
-
-// app.use((req, res, next) => {
-//   console.log(`🔥 ${new Date().toISOString()} | ${req.method} ${req.url}`);
-//   console.log(`   Headers:`, req.headers);
-//   next();
-// });
-
-// // app.use(cors({
-// //   origin: ["http://localhost:5174", "http://localhost:5173", "http://localhost:5001"],
-// //   credentials: true,
-// //   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-// //   allowedHeaders: ["Content-Type", "Authorization"],
-// // }));
-
-
-// app.use(cors({
-//   origin: true,
-//   credentials: true
-// }));
-
-// app.use(express.json({ limit: "1mb" }));
-// app.use(express.urlencoded({ extended: true }));
-// app.use('/upload', express.static('upload'));
-
-// app.get("/", (req, res) => res.send("Server is running ✅"));
-
-// app.use("/send-code", sendCode);
-// app.use("/verify-code", verifyCode);
-// app.use("/create-user", createUser);
-// app.use("/users", users);
-// app.use("/user", user);
-// app.use("/forget-send-code", forgetSendOtp);
-// app.use("/forget-verify-code", verifyForgetOtp);
-// app.use("/update-password", updatePassword);
-// app.use("/verify-password", verifyPassword);
-// app.use("/courses", courses);
-// app.use("/single-course", getCourseById);
-// app.use("/create_course", createCourses);
-// app.use("/manage_course", manageCourses);
-// app.use("/cart", cartRouter);
-// app.use("/add-cart", createCart);
-// app.use("/remove-cart", deleteCart);
-// app.use("/checkout", checkoutRouter);
-// app.use("/get-payment", getPayment)
-// app.use("/get-user-payment", getUserPayment)
-// app.use("/my-courses", myCoursesRouter);
-// app.use("/create-order", createOrder);
-// app.use("/orders", getOrder);
-// app.use("/user-order", getUserOrder);
-// app.use("/single-order", getSingleOrder);
-// app.use("/update-payment", changePaymentStatus)
-// app.use("/wallet", walletRouter);
-// app.use("/admin", adminWalletRouter);
-
-// app.use("/all-tickets", getAllTickets)
-// app.use("/tickets/status", updateTicketStatus)
-// app.use("/tickets/chat", ticketChat)
-// app.use("/tickets/chat/send", ticketChatPost)
-// app.use("/tickets/create", createTickets)
-// app.use("/user-ticket", userTickets)
-
-// app.use("/all-users", allUser)
-
-// app.use("/my-users", myUsers);
-
-// app.get("/debug-users", async (req, res) => {
-//   try {
-//     const users = await User.findAll({
-//       attributes: ['id', 'userId', 'name', 'email', 'referalCode', 'parent_code', 'ref_by_id'],
-//       raw: true
-//     });
-
-//     res.json({
-//       totalUsers: users.length,
-//       users: users
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-
-// app.use((req, res, next) => {
-//   res.status(404).json({
-//     success: false,
-//     message: `Route ${req.method} ${req.url} not found`,
-//   });
-// });
-
-
-// app.use((err, req, res, next) => {
-//   res.status(err.status || 500).json({
-//     success: false,
-//     message: err.message || "Internal Server Error",
-//   });
-// });
-
-// process.on("uncaughtException", (err) => {
-//   console.error("UNCAUGHT EXCEPTION:", err);
-// });
-
-// process.on("unhandledRejection", (reason) => {
-//   console.error("UNHANDLED REJECTION:", reason);
-// });
-// async function startServer() {
-//   try {
-//     await sequelize.authenticate();
-//     await sequelize.sync({ alter: true });
-//     await seedAdmin();
-
-//     app.listen(process.env.PORT, "0.0.0.0", () => {
-//       console.log(`🚀 Server running on ${process.env.PORT}`);
-//     });
-//   } catch (err) {
-//     console.error("❌ Startup failed", err);
-//     process.exit(1);
-//   }
-// }
-
-// startServer();
-
-
-import 'dotenv/config'
-// import dotenv from "dotenv";
-
-// dotenv.config({
-//   path: ".env.local"
-// });
-
+import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import compression from "compression";
+
 import "./Modal/index.js";
 import sequelize from "./DB/sequelize.js";
 import { seedAdmin } from "../utils/seedAdmin.js";
 
-// Routes Imports
-import sendCode from "./Router/EmailVerify/sendEmail.js";
-import verifyCode from "./Router/EmailVerify/verifyEmail.js";
-import createUser from "./Router/User/createUser.js";
-import users from "./Router/User/users.js";
-import verifyPassword from "./Router/User/verifyPassword.js";
-import user from "./Router/User/$user.js";
-import forgetSendOtp from "./Router/EmailForget/forgetSendOtp.js";
-import verifyForgetOtp from "./Router/EmailForget/verifyForgetOtp.js";
-import updatePassword from "./Router/EmailForget/updatePassword.js";
-import courses from "./Router/Courses/courses.js";
-import createCourses from "./Router/Courses/createCourses.js";
-import manageCourses from "./Router/Courses/manageCourses.js";
-import myUsers from "./Router/my-users/index.js";
-import User from "./Modal/User.modal.js";
-import getCourseById from "./Router/Courses/coursesId.js";
-import cartRouter from "./Router/Cart/cart.js";
-// import checkoutRouter from "./Router/Payment/checkout.js";
-import myCoursesRouter from "./Router/UserCourses/myCourses.js";
-import createCart from "./Router/Cart/cartCreate.js";
-import deleteCart from "./Router/Cart/deleteCart.js";
-import createOrder from "./Router/Order/createOrder.js";
-import getOrder from "./Router/Order/getOrder.js";
-import getSingleOrder from "./Router/Order/getSingleOrder.js";
-import getUserPayment from "./Router/Payment/getUserPyement.js";
-import getPayment from "./Router/Payment/getPayment.js";
-import allUser from "./Router/User/alluser.js";
+// ─── Routes Imports ──────────────────────────────────────────────────────────
+import sendCode            from "./Router/EmailVerify/sendEmail.js";
+import verifyCode          from "./Router/EmailVerify/verifyEmail.js";
+import createUser          from "./Router/User/createUser.js";
+import users               from "./Router/User/users.js";
+import verifyPassword      from "./Router/User/verifyPassword.js";
+import user                from "./Router/User/$user.js";
+import forgetSendOtp       from "./Router/EmailForget/forgetSendOtp.js";
+import verifyForgetOtp     from "./Router/EmailForget/verifyForgetOtp.js";
+import updatePassword      from "./Router/EmailForget/updatePassword.js";
+import courses             from "./Router/Courses/courses.js";
+import createCourses       from "./Router/Courses/createCourses.js";
+import manageCourses       from "./Router/Courses/manageCourses.js";
+import myUsers             from "./Router/my-users/index.js";
+import getCourseById       from "./Router/Courses/coursesId.js";
+import cartRouter          from "./Router/Cart/cart.js";
+import myCoursesRouter     from "./Router/UserCourses/myCourses.js";
+import createCart          from "./Router/Cart/cartCreate.js";
+import deleteCart          from "./Router/Cart/deleteCart.js";
+import createOrder         from "./Router/Order/createOrder.js";
+import getOrder            from "./Router/Order/getOrder.js";
+import getSingleOrder      from "./Router/Order/getSingleOrder.js";
+import getUserPayment      from "./Router/Payment/getUserPyement.js";
+import getPayment          from "./Router/Payment/getPayment.js";
+import allUser             from "./Router/User/alluser.js";
 import changePaymentStatus from "./Router/Payment/changePaymentStatus.js";
-import getUserOrder from "./Router/Order/getUserOrder.js";
-import walletRouter from "./Router/Wallet/wallet.js";
-import adminWalletRouter from "./Router/User/adminWallet.js";
-import getAllTickets from "./Router/Contact/getAllTickets.js";
-import updateTicketStatus from "./Router/Contact/updateTicket.js";
-import ticketChat from "./Router/Contact/ticketChat.js";
-import ticketChatPost from "./Router/Contact/ticketChatPost.js";
-import createTickets from "./Router/Contact/createTicket.js";
-import userTickets from "./Router/Contact/userTicket.js";
-import verifyPayment from "./Router/Payment/verifyPayment.js";
-import webhookPayment from "./Router/Payment/webhookPayment.js";
-import withdrawalRouterGet from './Router/Withdraw/withdraw.get.js';
-import withdrawalRouterPost from './Router/Withdraw/withdraw.post.js';
-import withdrawalRouterPatch from './Router/Withdraw/withdraw.patch.js';
-import withdrawalUserRouterGet from './Router/Withdraw/withdraw.user.get.js';
-import createPayment from './Router/Payment/createPayment.js';
+import getUserOrder        from "./Router/Order/getUserOrder.js";
+import walletRouter        from "./Router/Wallet/wallet.js";
+import adminWalletRouter   from "./Router/User/adminWallet.js";
+import getAllTickets        from "./Router/Contact/getAllTickets.js";
+import updateTicketStatus  from "./Router/Contact/updateTicket.js";
+import ticketChat          from "./Router/Contact/ticketChat.js";
+import ticketChatPost      from "./Router/Contact/ticketChatPost.js";
+import createTickets       from "./Router/Contact/createTicket.js";
+import userTickets         from "./Router/Contact/userTicket.js";
+import verifyPayment       from "./Router/Payment/verifyPayment.js";
+import webhookPayment      from "./Router/Payment/webhookPayment.js";
+import withdrawalRouterGet      from './Router/Withdraw/withdraw.get.js';
+import withdrawalRouterPost     from './Router/Withdraw/withdraw.post.js';
+import withdrawalRouterPatch    from './Router/Withdraw/withdraw.patch.js';
+import withdrawalUserRouterGet  from './Router/Withdraw/withdraw.user.get.js';
+import createPayment       from './Router/Payment/createPayment.js';
 
-const app = express();
+// ─── App + HTTP Server Setup ─────────────────────────────────────────────────
+const app        = express();
 const httpServer = createServer(app);
 
+// ─── Allowed Origins ─────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  "https://dm-advancetech.com",
+  "https://www.dm-advancetech.com",
+  // Dev mein test ke liye niche wali line uncomment karein:
+  // "http://localhost:3000",
+];
 
+// ─── Socket.io ───────────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://dm-advancetech.com",
-    methods: ["GET", "POST"]
-  }
+    origin: ALLOWED_ORIGINS,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  pingTimeout:  20000,   // 20 sec bina response ke disconnect
+  pingInterval: 25000,   // har 25 sec ek ping
+  transports: ["websocket", "polling"],
 });
 
+// ─── Security: Helmet (HTTP headers) ─────────────────────────────────────────
 app.disable("x-powered-by");
-
-app.use(cors({
-  origin: true,
-  credentials: true
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // static files ke liye
 }));
 
+// ─── Compression ─────────────────────────────────────────────────────────────
+app.use(compression());
+
+// ─── CORS ────────────────────────────────────────────────────────────────────
+app.use(cors({
+  origin: (origin, callback) => {
+    // Postman / server-to-server calls (no origin) allow — sirf dev/trusted
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error(`CORS: Origin ${origin} not allowed`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+// ─── Body Parsers ─────────────────────────────────────────────────────────────
+// Webhook ko raw body chahiye — isliye pehle register karo
+app.use("/payment-webhook", express.raw({ type: "application/json" }));
+
+// Baaki sab ke liye JSON
 app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+// ─── Static Files ─────────────────────────────────────────────────────────────
 app.use('/upload', express.static('upload'));
 
-io.on("connection", (socket) => {
-  console.log(`📡 New Socket Connection: ${socket.id}`);
-
-  socket.on("join_ticket", (ticketId) => {
-    socket.join(ticketId);
-    console.log(`👥 User joined room: ${ticketId}`);
-  });
-
-  socket.on("send_message", (data) => {
-    io.to(data.ticket_id).emit("receive_message", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("❌ Socket Disconnected");
-  });
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+// Global limiter: har IP ko 100 req / 1 min
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many requests, please try again later." },
 });
 
+// Auth routes pe zyada strict limiter (brute-force se bachao)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many attempts, please try after 15 minutes." },
+});
+
+app.use(globalLimiter);
+
+// ─── DB Ready Middleware ──────────────────────────────────────────────────────
+// Webhook aur health-check ko DB check se bahar rakhna chahiye
+const DB_BYPASS_ROUTES = ["/", "/health", "/payment-webhook"];
+
 app.use((req, res, next) => {
+  if (DB_BYPASS_ROUTES.includes(req.path)) return next();
+  if (!global.isDBReady) {
+    return res.status(503).json({
+      success: false,
+      message: "Server is starting up, please retry in a few seconds.",
+    });
+  }
+  next();
+});
+
+// ─── Attach Socket.io to Request ─────────────────────────────────────────────
+app.use((req, _res, next) => {
   req.io = io;
   next();
 });
 
-// Routes
+// ─── Socket.io Events ────────────────────────────────────────────────────────
+io.on("connection", (socket) => {
+  console.log(`📡 Socket Connected: ${socket.id}`);
 
+  socket.on("join_ticket", (ticketId) => {
+    socket.join(String(ticketId));
+    console.log(`👥 Joined room: ${ticketId}`);
+  });
 
-app.get("/", (req, res) => res.send("Server is running with Socket.io ✅"));
+  socket.on("send_message", (data) => {
+    if (!data?.ticket_id) return;
+    io.to(String(data.ticket_id)).emit("receive_message", data);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`❌ Socket Disconnected [${socket.id}]: ${reason}`);
+  });
+
+  socket.on("error", (err) => {
+    console.error(`⚠️  Socket Error [${socket.id}]:`, err.message);
+  });
+});
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+// Health check (DB bypass — always responds)
+app.get("/", (_req, res) => res.json({ success: true, message: "Server is running ✅" }));
+app.get("/health", (_req, res) =>
+  res.json({ success: true, db: global.isDBReady ? "ready" : "initializing" })
+);
+
+// Webhook — raw body required, alag parser upar se lag chuka
 app.use("/payment-webhook", webhookPayment);
-app.use("/send-code", sendCode);
-app.use("/verify-code", verifyCode);
-app.use("/create-user", createUser);
-app.use("/users", users);
-app.use("/user", user);
-app.use("/forget-send-code", forgetSendOtp);
-app.use("/forget-verify-code", verifyForgetOtp);
-app.use("/update-password", updatePassword);
-app.use("/verify-password", verifyPassword);
-app.use("/courses", courses);
-app.use("/single-course", getCourseById);
-app.use("/create_course", createCourses);
-app.use("/manage_course", manageCourses);
-app.use("/cart", cartRouter);
-app.use("/add-cart", createCart);
-app.use("/remove-cart", deleteCart);
-// app.use("/checkout", checkoutRouter);
-// app.use("/get-payment", getPayment);
-// app.use("/get-user-payment", getUserPayment);
-app.use("/my-courses", myCoursesRouter);
-app.use("/create-order", createOrder);
-app.use("/checkout", createPayment);
-app.use("/payment/verify", verifyPayment);
-app.use("/get-payment", getPayment);
-app.use("/get-user-payment", getUserPayment);
-// app.use("/orders", getOrder);
-// app.use("/user-order", getUserOrder);
-app.use("/orders", getOrder);
-app.use("/user-order", getUserOrder);
-app.use("/single-order", getSingleOrder);
-app.use("/update-payment", changePaymentStatus);
-app.use("/wallet", walletRouter);
-app.use("/admin", adminWalletRouter);
-app.use("/all-tickets", getAllTickets);
-app.use("/tickets/status", updateTicketStatus);
-app.use("/tickets/chat", ticketChat);
-app.use("/tickets/chat/send", ticketChatPost);
-app.use("/tickets/create", createTickets);
-app.use("/user-ticket", userTickets);
-app.use("/all-users", allUser);
-app.use("/my-users", myUsers);
 
-// withdraw
-app.use("/history-withdraw-all", withdrawalRouterGet);
-app.use("/history-withdraw-my", withdrawalUserRouterGet);
-app.use("/request-payment", withdrawalRouterPost);
-app.use("/update-withdraw", withdrawalRouterPatch);
+// Auth routes — strict rate limiter
+app.use("/send-code",           authLimiter, sendCode);
+app.use("/verify-code",         authLimiter, verifyCode);
+app.use("/create-user",         authLimiter, createUser);
+app.use("/verify-password",     authLimiter, verifyPassword);
+app.use("/forget-send-code",    authLimiter, forgetSendOtp);
+app.use("/forget-verify-code",  authLimiter, verifyForgetOtp);
+app.use("/update-password",     authLimiter, updatePassword);
 
-// Error Handlers
-app.use((req, res, next) => {
-  res.status(404).json({ success: false, message: `Route ${req.method} ${req.url} not found` });
+// User routes
+app.use("/users",               users);
+app.use("/user",                user);
+app.use("/all-users",           allUser);
+app.use("/my-users",            myUsers);
+app.use("/admin",               adminWalletRouter);
+
+// Course routes
+app.use("/courses",             courses);
+app.use("/single-course",       getCourseById);
+app.use("/create_course",       createCourses);
+app.use("/manage_course",       manageCourses);
+
+// Cart routes
+app.use("/cart",                cartRouter);
+app.use("/add-cart",            createCart);
+app.use("/remove-cart",         deleteCart);
+
+// Order routes
+app.use("/create-order",        createOrder);
+app.use("/orders",              getOrder);
+app.use("/user-order",          getUserOrder);
+app.use("/single-order",        getSingleOrder);
+
+// Payment routes
+app.use("/checkout",            createPayment);
+app.use("/payment/verify",      verifyPayment);
+app.use("/get-payment",         getPayment);
+app.use("/get-user-payment",    getUserPayment);
+app.use("/update-payment",      changePaymentStatus);
+
+// My Courses
+app.use("/my-courses",          myCoursesRouter);
+
+// Wallet
+app.use("/wallet",              walletRouter);
+
+// Support Tickets
+app.use("/all-tickets",         getAllTickets);
+app.use("/tickets/status",      updateTicketStatus);
+app.use("/tickets/chat",        ticketChat);
+app.use("/tickets/chat/send",   ticketChatPost);
+app.use("/tickets/create",      createTickets);
+app.use("/user-ticket",         userTickets);
+
+// Withdraw
+app.use("/history-withdraw-all",  withdrawalRouterGet);
+app.use("/history-withdraw-my",   withdrawalUserRouterGet);
+app.use("/request-payment",       withdrawalRouterPost);
+app.use("/update-withdraw",       withdrawalRouterPatch);
+
+// ─── 404 Handler ─────────────────────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.url} not found`,
+  });
 });
 
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({ success: false, message: err.message || "Internal Server Error" });
+// ─── Global Error Handler ─────────────────────────────────────────────────────
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, _next) => {
+  // CORS error
+  if (err.message?.startsWith("CORS:")) {
+    return res.status(403).json({ success: false, message: err.message });
+  }
+  console.error("🔥 Unhandled Error:", err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
 });
 
-// async function startServer() {
-//   try {
-//     await sequelize.authenticate();
-//     await sequelize.sync({ alter: true });
-//     await seedAdmin();
-//     httpServer.listen(process.env.PORT || 5000, "0.0.0.0", () => {
-//       console.log(`🚀 Server + Socket running on ${process.env.PORT || 5000}`);
-//     });
-//   } catch (err) {
-//     console.error("❌ Startup failed", err);
-//     process.exit(1);
-//   }
-// }
-
-
-
-async function startServer() {
-  // Pure server startup ka timer shuru
-  console.time("⏱️ Total Startup Time");
-
+// ─── Background Init (DB + Seed) ──────────────────────────────────────────────
+async function runBackgroundTasks(retryCount = 0) {
+  const MAX_RETRIES = 10;
   try {
-    console.time("1️⃣ DB Connection Time");
+    console.time("1️⃣  DB Auth");
     await sequelize.authenticate();
+    console.timeEnd("1️⃣  DB Auth");
     console.log("📡 DB Connected ✅");
-    console.timeEnd("1️⃣ DB Connection Time");
 
-    // Server Listen ka Timer
-    console.time("2️⃣ Server Listen Time");
-    httpServer.listen(process.env.PORT || 5000, "0.0.0.0", () => {
-      console.log(`🚀 Server running on port ${process.env.PORT || 5000} ✅`);
-      console.timeEnd("2️⃣ Server Listen Time");
-      console.timeEnd("⏱️ Total Startup Time"); // Yahan tak ka time main delay hai
-    });
+    console.time("2️⃣  DB Sync");
+    await sequelize.sync({ alter: true });   // schema update karo
+    console.timeEnd("2️⃣  DB Sync");
 
-    const runBackgroundTasks = async () => {
-      try {
-        console.time("3️⃣ Background Sync Time");
-        const syncOptions = process.env.NODE_ENV === 'development' ? { alter: true } : {};
+    console.time("3️⃣  Admin Seed");
+    await seedAdmin();
+    console.timeEnd("3️⃣  Admin Seed");
 
-        console.log("⏳ DB Syncing in background...");
-        await sequelize.sync({ alter: true });
-        console.log("✅ DB Synced");
-        console.timeEnd("3️⃣ Background Sync Time");
+    global.isDBReady = true;
+    console.log("🟢 DB + Seed Ready — Server fully operational ✅");
 
-        console.time("4️⃣ Admin Seeding Time");
-        await seedAdmin();
-        console.log("🔥 Admin Check/Seed Completed");
-        console.timeEnd("4️⃣ Admin Seeding Time");
-      } catch (bgError) {
-        console.error("❌ Background Task Error:", bgError);
-      }
-    };
+  } catch (error) {
+    console.error(`❌ Background Task Error (attempt ${retryCount + 1}):`, error.message);
 
-    runBackgroundTasks();
-
-  } catch (err) {
-    console.error("❌ Fatal Startup Error:", err);
-    process.exit(1);
+    if (retryCount < MAX_RETRIES) {
+      const delay = Math.min(2 ** retryCount * 1000, 30000); // exponential backoff, max 30s
+      console.log(`🔄 Retrying in ${delay / 1000}s...`);
+      setTimeout(() => runBackgroundTasks(retryCount + 1), delay);
+    } else {
+      console.error("💀 Max retries reached. DB never connected. Exiting.");
+      process.exit(1);
+    }
   }
 }
-startServer();
+
+// ─── Graceful Shutdown ────────────────────────────────────────────────────────
+function gracefulShutdown(signal) {
+  console.log(`\n📴 ${signal} received. Shutting down gracefully...`);
+  httpServer.close(async () => {
+    try {
+      await sequelize.close();
+      console.log("🗄️  DB connection closed.");
+    } catch (_) {}
+    console.log("👋 Server closed. Goodbye.");
+    process.exit(0);
+  });
+
+  // 10 sec ke baad force exit
+  setTimeout(() => {
+    console.error("⚠️  Forcefully shutting down after timeout.");
+    process.exit(1);
+  }, 10_000);
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT",  () => gracefulShutdown("SIGINT"));
+
+// Uncaught exceptions — crash mat karo, log karo
+process.on("uncaughtException",  (err) => console.error("🔥 uncaughtException:",  err));
+process.on("unhandledRejection", (err) => console.error("🔥 unhandledRejection:", err));
+
+// ─── Server Start ─────────────────────────────────────────────────────────────
+const PORT = process.env.PORT || 5000;
+
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server listening on port ${PORT}`);
+  // DB aur seed background mein — server turant requests accept karta hai
+  // lekin DB_BYPASS_ROUTES ke alawa sab 503 denge jab tak DB ready nahi
+  runBackgroundTasks();
+});
