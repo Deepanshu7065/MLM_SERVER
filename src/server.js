@@ -103,6 +103,7 @@ app.get("/health", (_req, res) => {
 
 // ─── Security & Performance Middleware ───────────────────────────────────────
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
