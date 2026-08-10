@@ -58,17 +58,25 @@ const app = express();
 const httpServer = createServer(app);
 
 
-const ALLOWED_ORIGINS = [
-  "https://dm-advancetech.com",
-  "https://www.dm-advancetech.com",
-  "http://100.90.254.6:3110",
-  "http://100.90.254.6:5173",
-  "http://100.90.254.6:3000",
-  "http://localhost:3110",
-  "http://localhost:5173",
-  "http://192.168.1.24:3110",
-  "http://172.22.0.1:3110",
-];
+const envFrontendUrls = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const ALLOWED_ORIGINS = Array.from(
+  new Set([
+    ...envFrontendUrls,
+    "https://dm-advancetech.com",
+    "https://www.dm-advancetech.com",
+    "http://100.90.254.6:3110",
+    "http://100.90.254.6:5173",
+    "http://100.90.254.6:3000",
+    "http://localhost:3110",
+    "http://localhost:5173",
+    "http://192.168.1.24:3110",
+    "http://172.22.0.1:3110",
+  ])
+);
 
 
 const io = new Server(httpServer, {
@@ -77,7 +85,7 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   },
-  pingTimeout: 20000,
+  pingTimeout: 60000,
   pingInterval: 25000,
   transports: ["websocket", "polling"],
 });
@@ -89,7 +97,7 @@ app.get("/", (_req, res) => {
 });
 
 app.get("/health", (_req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     db: global.isDBReady ? "ready" : "initializing",
     uptime: Math.floor(process.uptime()),
@@ -109,12 +117,12 @@ app.use(compression());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) {
-      const isProd = process.env.NODE_ENV === "production";
-      if (isProd) return callback(new Error("CORS: No origin not allowed in production"));
       return callback(null, true);
     }
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: Origin ${origin} not allowed`));
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS: Origin ${origin} not allowed`));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -170,6 +178,14 @@ app.use((req, _res, next) => {
 
 io.on("connection", (socket) => {
   console.log(`📡 Socket Connected: ${socket.id}`);
+  console.log(`   Transport: ${socket.conn.transport.name}`);
+  console.log(`   Origin: ${socket.handshake.headers.origin || "none"}`);
+
+  socket.conn.on("upgrade", () => {
+    console.log(
+      `🔄 Socket Transport Upgraded [${socket.id}]: ${socket.conn.transport.name}`
+    );
+  });
 
   socket.on("join_ticket", (ticketId) => {
     socket.join(String(ticketId));
@@ -181,12 +197,17 @@ io.on("connection", (socket) => {
     io.to(String(data.ticket_id)).emit("receive_message", data);
   });
 
-  socket.on("disconnect", (reason) => {
-    console.log(`❌ Socket Disconnected [${socket.id}]: ${reason}`);
+  socket.on("disconnect", (reason, details) => {
+    console.log(`❌ Socket Disconnected [${socket.id}]`);
+    console.log(`   Reason: ${reason}`);
+
+    if (details) {
+      console.log(`   Details:`, details);
+    }
   });
 
-  socket.on("error", (err) => {
-    console.error(`⚠️  Socket Error [${socket.id}]:`, err.message);
+  socket.on("error", (error) => {
+    console.error(`⚠️ Socket Error [${socket.id}]:`, error);
   });
 });
 
@@ -266,23 +287,22 @@ app.use((err, req, res, _next) => {
 
 
 async function runBackgroundTasks(retryCount = 0) {
-  const MAX_RETRIES = 10;
-
   try {
     console.time("1️⃣ DB Auth");
-
     await sequelize.authenticate();
-
+    global.isDBReady = true;
     console.log("📡 DB Connected ✅");
+  } catch (err) {
+    console.error("❌ DB Auth failed:", err);
+    global.isDBReady = false;
   } finally {
     console.timeEnd("1️⃣ DB Auth");
   }
-
 }
 
 function startKeepAlive() {
   const PING_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
-  const selfUrl = process.env.SELF_URL || "https://dm-advancetech.com/health";
+  const selfUrl = process.env.SELF_URL || "https://server.dm-advancetech.com/health";
 
   import("https").then(({ default: https }) => {
     const ping = () => {
