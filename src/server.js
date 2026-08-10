@@ -204,45 +204,45 @@ io.on("connection", (socket) => {
 app.use("/payment-webhook", webhookPayment);
 
 // ─── Auth Routes (strict limiter) ────────────────────────────────────────────
-app.use("/send-code",          authLimiter, sendCode);
-app.use("/verify-code",        authLimiter, verifyCode);
-app.use("/create-user",        authLimiter, createUser);
-app.use("/verify-password",    authLimiter, verifyPassword);
-app.use("/forget-send-code",   authLimiter, forgetSendOtp);
+app.use("/send-code", authLimiter, sendCode);
+app.use("/verify-code", authLimiter, verifyCode);
+app.use("/create-user", authLimiter, createUser);
+app.use("/verify-password", authLimiter, verifyPassword);
+app.use("/forget-send-code", authLimiter, forgetSendOtp);
 app.use("/forget-verify-code", authLimiter, verifyForgetOtp);
-app.use("/update-password",    authLimiter, updatePassword);
+app.use("/update-password", authLimiter, updatePassword);
 
 // ─── User Routes ──────────────────────────────────────────────────────────────
-app.use("/users",     users);
-app.use("/user",      user);
+app.use("/users", users);
+app.use("/user", user);
 app.use("/all-users", allUser);
-app.use("/my-users",  myUsers);
-app.use("/admin",     adminWalletRouter);
+app.use("/my-users", myUsers);
+app.use("/admin", adminWalletRouter);
 
 // ─── Course Routes ────────────────────────────────────────────────────────────
-app.use("/courses",       courses);
+app.use("/courses", courses);
 app.use("/single-course", getCourseById);
 app.use("/create_course", createCourses);
 app.use("/manage_course", manageCourses);
 
 // ─── Cart Routes ──────────────────────────────────────────────────────────────
-app.use("/cart",        cartRouter);
-app.use("/add-cart",    createCart);
+app.use("/cart", cartRouter);
+app.use("/add-cart", createCart);
 app.use("/remove-cart", deleteCart);
 
 // ─── Order Routes ─────────────────────────────────────────────────────────────
 app.use("/create-order", createOrder);
-app.use("/orders",       getOrder);
-app.use("/user-order",   getUserOrder);
+app.use("/orders", getOrder);
+app.use("/user-order", getUserOrder);
 app.use("/single-order", getSingleOrder);
-app.use("/invoice",      getOrderForInvoice);
+app.use("/invoice", getOrderForInvoice);
 
 // ─── Payment Routes ───────────────────────────────────────────────────────────
-app.use("/checkout",        createPayment);
-app.use("/payment/verify",  verifyPayment);
-app.use("/get-payment",     getPayment);
+app.use("/checkout", createPayment);
+app.use("/payment/verify", verifyPayment);
+app.use("/get-payment", getPayment);
 app.use("/get-user-payment", getUserPayment);
-app.use("/update-payment",  changePaymentStatus);
+app.use("/update-payment", changePaymentStatus);
 
 // ─── My Courses ───────────────────────────────────────────────────────────────
 app.use("/my-courses", myCoursesRouter);
@@ -251,18 +251,18 @@ app.use("/my-courses", myCoursesRouter);
 app.use("/wallet", walletRouter);
 
 // ─── Support Tickets ──────────────────────────────────────────────────────────
-app.use("/all-tickets",       getAllTickets);
-app.use("/tickets/status",    updateTicketStatus);
-app.use("/tickets/chat",      ticketChat);
+app.use("/all-tickets", getAllTickets);
+app.use("/tickets/status", updateTicketStatus);
+app.use("/tickets/chat", ticketChat);
 app.use("/tickets/chat/send", ticketChatPost);
-app.use("/tickets/create",    createTickets);
-app.use("/user-ticket",       userTickets);
+app.use("/tickets/create", createTickets);
+app.use("/user-ticket", userTickets);
 
 // ─── Withdraw ─────────────────────────────────────────────────────────────────
 app.use("/history-withdraw-all", withdrawalRouterGet);
-app.use("/history-withdraw-my",  withdrawalUserRouterGet);
-app.use("/request-payment",      withdrawalRouterPost);
-app.use("/update-withdraw",      withdrawalRouterPatch);
+app.use("/history-withdraw-my", withdrawalUserRouterGet);
+app.use("/request-payment", withdrawalRouterPost);
+app.use("/update-withdraw", withdrawalRouterPatch);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -288,49 +288,59 @@ app.use((err, req, res, _next) => {
 // ─── DB Init + Seed ───────────────────────────────────────────────────────────
 async function runBackgroundTasks(retryCount = 0) {
   const MAX_RETRIES = 10;
+  // try {
+  //   console.time("1️⃣  DB Auth");
+  //   await sequelize.authenticate();
+  //   console.timeEnd("1️⃣  DB Auth");
+  //   console.log("📡 DB Connected ✅");
+
+  //   console.time("2️⃣  DB Sync");
+  //   const isDev = process.env.NODE_ENV !== "production";
+
+  //   // 🔑 KEY FIX: Production mein alter:false — yeh 26s+ ki delay khatam karta hai
+  //   // alter:true sirf development mein use karo
+  //   await sequelize.sync({ alter: isDev, force: false });
+  //   console.timeEnd("2️⃣  DB Sync");
+
+  //   console.time("3️⃣  Admin Seed");
+  //   await seedAdmin();
+  //   console.timeEnd("3️⃣  Admin Seed");
+
+  //   global.isDBReady = true;
+  //   console.log("🟢 DB + Seed Ready — Server fully operational ✅");
+
+  //   // ─── Self Keep-Alive Ping ─────────────────────────────────────────────
+  //   // Render Free Tier 15 min mein sleep karta hai.
+  //   // Yeh internal ping SIRF server ko awake rakhta hai jab external ping
+  //   // (UptimeRobot/cron-job.org) kisi wajah se miss ho jaaye.
+  //   // ASLI SOLUTION: cron-job.org se https://dm-advancetech.com/health
+  //   // har 10-12 min pe ping lagao — woh zyada reliable hai.
+  //   if (process.env.NODE_ENV === "production") {
+  //     startKeepAlive();
+  //   }
+
+  // } catch (error) {
+  //   console.error(`❌ Background Task Error (attempt ${retryCount + 1}):`, error.message);
+
+  //   if (retryCount < MAX_RETRIES) {
+  //     const delay = Math.min(2 ** retryCount * 1000, 30000); // exponential backoff, max 30s
+  //     console.log(`🔄 Retrying in ${delay / 1000}s...`);
+  //     setTimeout(() => runBackgroundTasks(retryCount + 1), delay);
+  //   } else {
+  //     console.error("💀 Max retries reached. DB never connected. Exiting.");
+  //     process.exit(1);
+  //   }
+  // }
   try {
-    console.time("1️⃣  DB Auth");
+    console.time("1️⃣ DB Auth");
+
     await sequelize.authenticate();
-    console.timeEnd("1️⃣  DB Auth");
+
     console.log("📡 DB Connected ✅");
-
-    console.time("2️⃣  DB Sync");
-    const isDev = process.env.NODE_ENV !== "production";
-
-    // 🔑 KEY FIX: Production mein alter:false — yeh 26s+ ki delay khatam karta hai
-    // alter:true sirf development mein use karo
-    await sequelize.sync({ alter: isDev, force: false });
-    console.timeEnd("2️⃣  DB Sync");
-
-    console.time("3️⃣  Admin Seed");
-    await seedAdmin();
-    console.timeEnd("3️⃣  Admin Seed");
-
-    global.isDBReady = true;
-    console.log("🟢 DB + Seed Ready — Server fully operational ✅");
-
-    // ─── Self Keep-Alive Ping ─────────────────────────────────────────────
-    // Render Free Tier 15 min mein sleep karta hai.
-    // Yeh internal ping SIRF server ko awake rakhta hai jab external ping
-    // (UptimeRobot/cron-job.org) kisi wajah se miss ho jaaye.
-    // ASLI SOLUTION: cron-job.org se https://dm-advancetech.com/health
-    // har 10-12 min pe ping lagao — woh zyada reliable hai.
-    if (process.env.NODE_ENV === "production") {
-      startKeepAlive();
-    }
-
-  } catch (error) {
-    console.error(`❌ Background Task Error (attempt ${retryCount + 1}):`, error.message);
-
-    if (retryCount < MAX_RETRIES) {
-      const delay = Math.min(2 ** retryCount * 1000, 30000); // exponential backoff, max 30s
-      console.log(`🔄 Retrying in ${delay / 1000}s...`);
-      setTimeout(() => runBackgroundTasks(retryCount + 1), delay);
-    } else {
-      console.error("💀 Max retries reached. DB never connected. Exiting.");
-      process.exit(1);
-    }
+  } finally {
+    console.timeEnd("1️⃣ DB Auth");
   }
+
 }
 
 // ─── Keep-Alive: Internal Self-Ping ──────────────────────────────────────────
@@ -386,9 +396,9 @@ function gracefulShutdown(signal) {
 }
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT",  () => gracefulShutdown("SIGINT"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
-process.on("uncaughtException",  (err) => console.error("🔥 uncaughtException:", err));
+process.on("uncaughtException", (err) => console.error("🔥 uncaughtException:", err));
 process.on("unhandledRejection", (err) => console.error("🔥 unhandledRejection:", err));
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
