@@ -96,11 +96,17 @@ app.get("/", (_req, res) => {
   res.json({ success: true, message: "Server is running ✅" });
 });
 
+const SERVER_START_TIME = new Date().toISOString();
+
 app.get("/health", (_req, res) => {
+  const uptimeSec = Math.floor(process.uptime());
   res.status(200).json({
     success: true,
     db: global.isDBReady ? "ready" : "initializing",
-    uptime: Math.floor(process.uptime()),
+    uptime: uptimeSec,
+    uptimeFormatted: `${Math.floor(uptimeSec / 3600)}h ${Math.floor((uptimeSec % 3600) / 60)}m ${uptimeSec % 60}s`,
+    startedAt: SERVER_START_TIME,
+    memory: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
     timestamp: new Date().toISOString(),
   });
 });
@@ -286,22 +292,47 @@ app.use((err, req, res, _next) => {
 });
 
 
+const MAX_DB_RETRIES = 5;
+const DB_RETRY_BASE_MS = 2000;
+
 async function runBackgroundTasks(retryCount = 0) {
   try {
     console.time("1️⃣ DB Auth");
     await sequelize.authenticate();
     global.isDBReady = true;
     console.log("📡 DB Connected ✅");
-  } catch (err) {
-    console.error("❌ DB Auth failed:", err);
-    global.isDBReady = false;
-  } finally {
     console.timeEnd("1️⃣ DB Auth");
+
+    // Sync models (safe — no alter/force in production)
+    try {
+      await sequelize.sync();
+      console.log("📦 Models synced ✅");
+    } catch (syncErr) {
+      console.error("⚠️  Model sync warning:", syncErr.message);
+    }
+
+    // Seed admin user
+    try {
+      await seedAdmin();
+    } catch (_) { /* ignore if already seeded */ }
+
+  } catch (err) {
+    console.error(`❌ DB Auth failed (attempt ${retryCount + 1}/${MAX_DB_RETRIES}):`, err.message);
+    global.isDBReady = false;
+    console.timeEnd("1️⃣ DB Auth");
+
+    if (retryCount < MAX_DB_RETRIES - 1) {
+      const delayMs = DB_RETRY_BASE_MS * Math.pow(2, retryCount);
+      console.log(`🔄 Retrying DB connection in ${delayMs / 1000}s...`);
+      setTimeout(() => runBackgroundTasks(retryCount + 1), delayMs);
+    } else {
+      console.error("🚫 All DB connection retries exhausted. Server running without DB.");
+    }
   }
 }
 
 function startKeepAlive() {
-  const PING_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+  const PING_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes — well under Render's 15-min sleep threshold
   const selfUrl = process.env.SELF_URL || "https://server.dm-advancetech.com/health";
 
   import("https").then(({ default: https }) => {
@@ -315,12 +346,13 @@ function startKeepAlive() {
       req.end();
     };
 
+    // First ping after 30s (give server time to fully start), then every 4 minutes
     setTimeout(() => {
       ping();
       setInterval(ping, PING_INTERVAL_MS);
-    }, 60_000);
+    }, 30_000);
 
-    console.log(`🏓 Keep-alive started — pinging every ${PING_INTERVAL_MS / 60000} min`);
+    console.log(`🏓 Keep-alive scheduled — pinging every ${PING_INTERVAL_MS / 60000} min`);
   }).catch(() => {
     console.warn("⚠️  Keep-alive: https module load failed");
   });
@@ -354,4 +386,5 @@ const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server listening on port ${PORT}`);
   runBackgroundTasks();
+  startKeepAlive();   // ← WAS MISSING! Keep-alive was defined but never called
 });
