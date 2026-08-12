@@ -331,33 +331,46 @@ async function runBackgroundTasks(retryCount = 0) {
   }
 }
 
+// function startKeepAlive() {
+//   const PING_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes — well under Render's 15-min sleep threshold
+//   const selfUrl = process.env.SELF_URL || "https://server.dm-advancetech.com/health";
+
+//   import("https").then(({ default: https }) => {
+//     const ping = () => {
+//       const req = https.get(selfUrl, (res) => {
+//         console.log(`🏓 Keep-alive ping → ${selfUrl} [${res.statusCode}]`);
+//       });
+//       req.on("error", (err) => {
+//         console.warn(`⚠️  Keep-alive ping failed: ${err.message}`);
+//       });
+//       req.end();
+//     };
+
+//     // First ping after 30s (give server time to fully start), then every 4 minutes
+//     setTimeout(() => {
+//       ping();
+//       setInterval(ping, PING_INTERVAL_MS);
+//     }, 30_000);
+
+//     console.log(`🏓 Keep-alive scheduled — pinging every ${PING_INTERVAL_MS / 60000} min`);
+//   }).catch(() => {
+//     console.warn("⚠️  Keep-alive: https module load failed");
+//   });
+// }
+
 function startKeepAlive() {
-  const PING_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes — well under Render's 15-min sleep threshold
+  const PING_INTERVAL_MS = 4 * 60 * 1000;
   const selfUrl = process.env.SELF_URL || "https://server.dm-advancetech.com/health";
 
-  import("https").then(({ default: https }) => {
-    const ping = () => {
-      const req = https.get(selfUrl, (res) => {
-        console.log(`🏓 Keep-alive ping → ${selfUrl} [${res.statusCode}]`);
-      });
-      req.on("error", (err) => {
-        console.warn(`⚠️  Keep-alive ping failed: ${err.message}`);
-      });
-      req.end();
-    };
-
-    // First ping after 30s (give server time to fully start), then every 4 minutes
-    setTimeout(() => {
-      ping();
-      setInterval(ping, PING_INTERVAL_MS);
-    }, 30_000);
-
-    console.log(`🏓 Keep-alive scheduled — pinging every ${PING_INTERVAL_MS / 60000} min`);
-  }).catch(() => {
-    console.warn("⚠️  Keep-alive: https module load failed");
-  });
+  setInterval(async () => {
+    try {
+      const response = await fetch(selfUrl);
+      console.log(`🏓 Keep-alive ping → ${selfUrl} [${response.status}]`);
+    } catch (err) {
+      console.warn(`⚠️ Keep-alive ping failed: ${err.message}`);
+    }
+  }, PING_INTERVAL_MS);
 }
-
 function gracefulShutdown(signal) {
   console.log(`\n📴 ${signal} received. Shutting down gracefully...`);
   httpServer.close(async () => {
