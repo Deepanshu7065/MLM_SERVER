@@ -113,7 +113,7 @@ import crypto from "crypto";
 import redis from "../../../config/redisClient.js";
 import User from "../../Modal/User.modal.js";
 import { buildEmailHtml } from "../EmailVerify/sendEmailHtml.js";
-import { createTransporter } from "../EmailVerify/nodemailer.js";
+import { sendOtpEmail } from "../../../utils/mailer.js";
 
 const forgetSendOtp = Router();
 
@@ -137,16 +137,14 @@ forgetSendOtp.post("/", async (req, res) => {
 
         (async () => {
             try {
-                const transporter = createTransporter();
-                await transporter.sendMail({
+                await sendOtpEmail({
                     to: email,
                     subject: "Reset Password OTP",
-                    from: `"YourApp" <${process.env.EMAIL_USER}>`,
                     html: buildEmailHtml({ name: user.userId, code: otp }),
                 });
                 console.log(`[EmailForget] Reset OTP email sent successfully to ${email}`);
             } catch (mailErr) {
-                console.error("[EmailForget] Nodemailer send error:", mailErr);
+                console.error("[EmailForget] Mail send error:", mailErr);
             }
         })();
 

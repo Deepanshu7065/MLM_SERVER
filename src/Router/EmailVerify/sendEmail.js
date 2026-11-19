@@ -140,7 +140,7 @@
 import { Router } from "express";
 import crypto from "crypto";
 import { buildEmailHtml } from "./sendEmailHtml.js";
-import { createTransporter } from "./nodemailer.js";
+import { sendOtpEmail } from "../../../utils/mailer.js";
 import User from "../../Modal/User.modal.js";
 import redis from "../../../config/redisClient.js";
 
@@ -169,16 +169,14 @@ sendCode.post("/", async (req, res) => {
 
     (async () => {
       try {
-        const transporter = createTransporter();
-        await transporter.sendMail({
+        await sendOtpEmail({
           to: email,
-          from: `"YourApp" <${process.env.EMAIL_USER}>`,
           subject: "OTP Verification",
           html: buildEmailHtml({ name: user.userId, code: otp }),
         });
         console.log(`[EmailVerify] OTP email sent successfully to ${email}`);
       } catch (mailErr) {
-        console.error("[EmailVerify] Nodemailer send error:", mailErr);
+        console.error("[EmailVerify] Mail send error:", mailErr);
       }
     })();
 
