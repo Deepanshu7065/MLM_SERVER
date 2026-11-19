@@ -144,7 +144,10 @@ forgetSendOtp.post("/", async (req, res) => {
                     from: `"YourApp" <${process.env.EMAIL_USER}>`,
                     html: buildEmailHtml({ name: user.userId, code: otp }),
                 });
-            } catch { }
+                console.log(`[EmailForget] Reset OTP email sent successfully to ${email}`);
+            } catch (mailErr) {
+                console.error("[EmailForget] Nodemailer send error:", mailErr);
+            }
         })();
 
         return res.json({ success: true, message: "OTP sent" });

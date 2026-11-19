@@ -176,7 +176,10 @@ sendCode.post("/", async (req, res) => {
           subject: "OTP Verification",
           html: buildEmailHtml({ name: user.userId, code: otp }),
         });
-      } catch {}
+        console.log(`[EmailVerify] OTP email sent successfully to ${email}`);
+      } catch (mailErr) {
+        console.error("[EmailVerify] Nodemailer send error:", mailErr);
+      }
     })();
 
     return res.status(200).json({
